@@ -183,6 +183,47 @@ const articles = [
   },
 ];
 
+const ARTICLE_EDITS_KEY = 'cyberpath-article-edits-v1';
+const EDIT_MODE_KEY = 'cyberpath-edit-mode-v1';
+const originalArticles = new Map(articles.map((article) => [article.slug, JSON.parse(JSON.stringify(article))]));
+let articleEdits = {};
+let editMode = false;
+
+try {
+  const storedEdits = JSON.parse(localStorage.getItem(ARTICLE_EDITS_KEY) || '{}');
+  if (storedEdits && typeof storedEdits === 'object' && !Array.isArray(storedEdits)) articleEdits = storedEdits;
+  editMode = localStorage.getItem(EDIT_MODE_KEY) === 'on';
+} catch (error) {
+  articleEdits = {};
+  editMode = false;
+}
+
+function applyArticleEdit(article, edit) {
+  if (!edit || typeof edit !== 'object') return;
+  ['title', 'summary', 'imageAlt', 'imageLabel'].forEach((key) => {
+    if (typeof edit[key] === 'string') article[key] = edit[key];
+  });
+  if (typeof edit.image === 'string' && (/^\/assets\/[\w./-]+$/.test(edit.image) || /^data:image\/(?:webp|png|jpeg|gif);base64,/.test(edit.image))) {
+    article.image = edit.image;
+  }
+  if (Array.isArray(edit.sections) && edit.sections.length === article.sections.length) {
+    article.sections = article.sections.map((section, index) => {
+      const saved = edit.sections[index];
+      if (!saved || typeof saved !== 'object') return section;
+      const updated = { ...section };
+      if (typeof saved.heading === 'string') updated.heading = saved.heading;
+      if (Array.isArray(saved.paragraphs) && saved.paragraphs.every((value) => typeof value === 'string')) updated.paragraphs = saved.paragraphs;
+      if (Array.isArray(saved.bullets) && saved.bullets.every((value) => typeof value === 'string')) updated.bullets = saved.bullets;
+      ['code', 'output', 'note'].forEach((key) => {
+        if (typeof saved[key] === 'string') updated[key] = saved[key];
+      });
+      return updated;
+    });
+  }
+}
+
+articles.forEach((article) => applyArticleEdit(article, articleEdits[article.slug]));
+
 const articleGrid = document.getElementById('article-grid');
 const searchInput = document.getElementById('site-search');
 const levelFilter = document.getElementById('level-filter');
@@ -192,9 +233,16 @@ const homeView = document.getElementById('home-view');
 const articleView = document.getElementById('article-view');
 const articleContent = document.getElementById('article-content');
 const toast = document.getElementById('toast');
+const editorModeToggle = document.getElementById('editor-mode-toggle');
+const editorTools = document.getElementById('editor-tools');
+const editorDialog = document.getElementById('article-editor-dialog');
+const editorForm = document.getElementById('article-editor-form');
+const editorFields = document.getElementById('article-editor-fields');
 let activeCategory = 'all';
 let activePhase = null;
 let toastTimer;
+let editingSlug = null;
+let pendingEditorImage = null;
 
 let completed = new Set();
 try {
@@ -361,7 +409,7 @@ function renderCards() {
       <div class="card-body"><div class="card-meta"><span class="card-category">${esc(stage?.short || article.category)}</span><span class="meta-separator"></span><span>${esc(article.level)}</span><span class="meta-separator"></span><span>${esc(article.time)}</span></div>
         <h3 class="card-title"><a class="card-title-link" href="#/article/${esc(article.slug)}">${esc(article.title)}</a></h3><p class="card-summary">${esc(article.summary)}</p>
         <div class="card-tags">${article.tags.slice(0, 3).map((tag) => `<span>${esc(tag)}</span>`).join('')}</div>
-        <div class="card-footer"><button class="mark-done" data-toggle-done="${esc(article.slug)}">${isDone ? 'আবার পড়ুন' : 'পড়া হয়েছে ✓'}</button></div>
+        <div class="card-footer">${editMode ? `<button class="edit-article-button" type="button" data-edit-article="${esc(article.slug)}">সম্পাদনা</button>` : ''}<button class="mark-done" data-toggle-done="${esc(article.slug)}">${isDone ? 'আবার পড়ুন' : 'পড়া হয়েছে ✓'}</button></div>
       </div></article>`;
   }).join('');
 }
@@ -399,6 +447,198 @@ function createElement(tag, className, text) {
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
   return node;
+}
+
+function addEditorField(parent, labelText, value, options = {}) {
+  const label = createElement('label', 'editor-field');
+  label.append(createElement('span', '', labelText));
+  const control = document.createElement(options.multiline ? 'textarea' : 'input');
+  if (!options.multiline) control.type = options.type || 'text';
+  if (options.multiline) control.rows = options.rows || 3;
+  if (options.maxLength) control.maxLength = options.maxLength;
+  if (options.required) control.required = true;
+  control.value = value ?? '';
+  label.append(control);
+  parent.append(label);
+  return control;
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('ছবিটি পড়া যায়নি।'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function compressEditorImage(file) {
+  if (!file || !file.type.startsWith('image/')) throw new Error('একটি image file বেছে নিন।');
+  if (file.size > 12 * 1024 * 1024) throw new Error('ছবিটি ১২ MB-এর নিচে রাখুন।');
+  const source = await readFileAsDataUrl(file);
+  const image = new Image();
+  image.src = source;
+  await image.decode();
+  const scale = Math.min(1, 1600 / Math.max(image.naturalWidth, image.naturalHeight));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+  canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+  canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+  for (const quality of [0.84, 0.72, 0.60]) {
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/webp', quality));
+    if (blob && blob.size <= 850 * 1024) return readFileAsDataUrl(blob);
+  }
+  throw new Error('ছবিটি compress করার পরও বড়। ছোট ছবি বেছে নিন।');
+}
+
+function addSectionEditor(container, section, index) {
+  const fieldset = createElement('fieldset', 'editor-section');
+  fieldset.dataset.sectionIndex = String(index);
+  const legend = createElement('legend', '', `অংশ ${index + 1}`);
+  fieldset.append(legend);
+  const heading = addEditorField(fieldset, 'অংশের শিরোনাম', section.heading, { maxLength: 180, required: true });
+  heading.dataset.sectionField = 'heading';
+  const paragraphs = addEditorField(fieldset, 'লেখা (paragraph আলাদা করতে একটি খালি লাইন দিন)', (section.paragraphs || []).join('\n\n'), { multiline: true, rows: 4 });
+  paragraphs.dataset.sectionField = 'paragraphs';
+  const bullets = addEditorField(fieldset, 'তালিকা (প্রতি লাইনে একটি বিষয়)', (section.bullets || []).join('\n'), { multiline: true, rows: 3 });
+  bullets.dataset.sectionField = 'bullets';
+  ['code', 'output', 'note'].forEach((key) => {
+    if (typeof section[key] !== 'string') return;
+    const labels = { code: 'কমান্ড', output: 'নমুনা ফল', note: 'নোট' };
+    const field = addEditorField(fieldset, labels[key], section[key], { multiline: true, rows: key === 'code' || key === 'output' ? 4 : 3 });
+    field.dataset.sectionField = key;
+  });
+  container.append(fieldset);
+}
+
+function openArticleEditor(slug) {
+  if (!editMode) return;
+  const article = articles.find((item) => item.slug === slug);
+  if (!article) return;
+  editingSlug = slug;
+  pendingEditorImage = article.image;
+  editorForm.querySelector('.editor-save-button').disabled = false;
+  document.getElementById('article-editor-title').textContent = `সম্পাদনা: ${article.title}`;
+  editorFields.replaceChildren();
+
+  const basics = createElement('div', 'editor-grid');
+  addEditorField(basics, 'পাঠের নাম', article.title, { maxLength: 180, required: true });
+  addEditorField(basics, 'কার্ডের সংক্ষিপ্ত লেখা', article.summary, { multiline: true, rows: 3, maxLength: 600 });
+  addEditorField(basics, 'ছবির alt text', article.imageAlt || '', { maxLength: 220 });
+  addEditorField(basics, 'ছবির উপর ছোট label', article.imageLabel || '', { maxLength: 90 });
+  editorFields.append(basics);
+
+  const imagePanel = createElement('section', 'editor-image-panel');
+  imagePanel.append(createElement('h3', '', 'কার্ড ও পাঠের ছবি'));
+  const preview = document.createElement('img');
+  preview.className = 'editor-image-preview';
+  preview.alt = article.imageAlt || 'বর্তমান ছবির preview';
+  if (article.image) preview.src = article.image;
+  imagePanel.append(preview);
+  const imageLabel = createElement('label', 'editor-field editor-file-field');
+  imageLabel.append(createElement('span', '', 'নতুন ছবি বেছে নিন'));
+  const imageInput = document.createElement('input');
+  imageInput.type = 'file';
+  imageInput.accept = 'image/*';
+  imageLabel.append(imageInput);
+  imagePanel.append(imageLabel);
+  imageInput.addEventListener('change', async () => {
+    const file = imageInput.files?.[0];
+    if (!file) return;
+    const saveButton = editorForm.querySelector('.editor-save-button');
+    saveButton.disabled = true;
+    try {
+      pendingEditorImage = await compressEditorImage(file);
+      preview.src = pendingEditorImage;
+      showToast('ছবিটি প্রস্তুত—সেভ করলে এই browser-এ থাকবে।');
+    } catch (error) {
+      imageInput.value = '';
+      showToast(error.message || 'ছবি যোগ করা যায়নি।');
+    } finally {
+      saveButton.disabled = false;
+    }
+  });
+  imagePanel.append(createElement('small', 'editor-help', 'ছবি browser-এ compress হবে; সর্বোচ্চ ৮৫০ KB করে সেভ হবে।'));
+  editorFields.append(imagePanel);
+
+  editorFields.append(createElement('h3', 'editor-subheading', 'পাঠের লেখা'));
+  article.sections.forEach((section, index) => addSectionEditor(editorFields, section, index));
+  editorDialog.showModal();
+}
+
+function collectArticleEdit(article) {
+  const sections = [...editorFields.querySelectorAll('.editor-section')].map((fieldset, index) => {
+    const section = { ...article.sections[index] };
+    const getValue = (key) => fieldset.querySelector(`[data-section-field="${key}"]`)?.value ?? '';
+    section.heading = getValue('heading').trim();
+    section.paragraphs = getValue('paragraphs').split(/\n\s*\n/).map((value) => value.trim()).filter(Boolean);
+    section.bullets = getValue('bullets').split('\n').map((value) => value.trim()).filter(Boolean);
+    ['code', 'output', 'note'].forEach((key) => {
+      if (fieldset.querySelector(`[data-section-field="${key}"]`)) section[key] = getValue(key);
+    });
+    return section;
+  });
+  return {
+    title: editorFields.querySelector('.editor-grid input')?.value.trim() || article.title,
+    summary: editorFields.querySelector('.editor-grid textarea')?.value.trim() || '',
+    image: pendingEditorImage || article.image,
+    imageAlt: editorFields.querySelectorAll('.editor-grid input')[1]?.value.trim() || '',
+    imageLabel: editorFields.querySelectorAll('.editor-grid input')[2]?.value.trim() || '',
+    sections,
+  };
+}
+
+function saveArticleEdits() {
+  const article = articles.find((item) => item.slug === editingSlug);
+  if (!article) return;
+  const edit = collectArticleEdit(article);
+  if (!edit.title) {
+    showToast('পাঠের নাম খালি রাখা যাবে না।');
+    return;
+  }
+  const nextEdits = { ...articleEdits, [article.slug]: edit };
+  const serialized = JSON.stringify(nextEdits);
+  if (serialized.length > 2_200_000) {
+    showToast('Browser storage ভরে গেছে—কিছু বড় ছবি সরিয়ে আবার চেষ্টা করুন।');
+    return;
+  }
+  try {
+    localStorage.setItem(ARTICLE_EDITS_KEY, serialized);
+  } catch (error) {
+    showToast('সেভ করা যায়নি—browser storage পূর্ণ হতে পারে।');
+    return;
+  }
+  articleEdits = nextEdits;
+  applyArticleEdit(article, edit);
+  editorDialog.close();
+  renderCards();
+  showToast('পরিবর্তন এই browser-এ সেভ হয়েছে।');
+}
+
+function restoreArticle(slug) {
+  const article = articles.find((item) => item.slug === slug);
+  const original = originalArticles.get(slug);
+  if (!article || !original) return;
+  Object.keys(article).forEach((key) => delete article[key]);
+  Object.assign(article, JSON.parse(JSON.stringify(original)));
+}
+
+function downloadArticleEdits() {
+  const blob = new Blob([JSON.stringify({ format: 'cyberpath-local-edits-v1', edits: articleEdits }, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `cyberpath-edits-${new Date().toISOString().slice(0, 10)}.json`;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('পরিবর্তনের backup ডাউনলোড হয়েছে।');
+}
+
+function syncEditorMode() {
+  editorModeToggle.textContent = editMode ? 'এডিট মোড বন্ধ করুন' : 'এডিট মোড চালু করুন';
+  editorModeToggle.setAttribute('aria-pressed', String(editMode));
+  editorModeToggle.classList.toggle('active', editMode);
+  editorTools.hidden = !editMode;
 }
 
 function buildPracticalFlow(article) {
@@ -682,8 +922,104 @@ document.querySelector('.roadmap-track').addEventListener('click', (event) => {
 });
 
 articleGrid.addEventListener('click', (event) => {
+  const editButton = event.target.closest('[data-edit-article]');
+  if (editButton) {
+    event.preventDefault();
+    openArticleEditor(editButton.dataset.editArticle);
+    return;
+  }
   const done = event.target.closest('[data-toggle-done]');
   if (done) setCompleted(done.dataset.toggleDone);
+});
+
+editorModeToggle.addEventListener('click', () => {
+  editMode = !editMode;
+  try {
+    localStorage.setItem(EDIT_MODE_KEY, editMode ? 'on' : 'off');
+  } catch (error) {
+    showToast('Mode এই session-এ বদলেছে, তবে browser-এ মনে রাখা যায়নি।');
+  }
+  syncEditorMode();
+  renderCards();
+  showToast(editMode ? 'এডিট মোড চালু—পরিবর্তন এই browser-এ সেভ হবে।' : 'এডিট মোড বন্ধ—সেভ করা পরিবর্তন থাকবে।');
+});
+
+document.getElementById('download-edits').addEventListener('click', downloadArticleEdits);
+const importEditsFile = document.getElementById('import-edits-file');
+document.getElementById('import-edits-button').addEventListener('click', () => importEditsFile.click());
+importEditsFile.addEventListener('change', async () => {
+  const file = importEditsFile.files?.[0];
+  if (!file) return;
+  try {
+    const parsed = JSON.parse(await file.text());
+    const incoming = parsed?.format === 'cyberpath-local-edits-v1' ? parsed.edits : parsed?.edits;
+    if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) throw new Error('backup format ঠিক নেই।');
+    const validSlugs = new Set(articles.map((article) => article.slug));
+    const restored = Object.fromEntries(Object.entries(incoming).filter(([slug, edit]) => validSlugs.has(slug) && edit && typeof edit === 'object'));
+    if (!Object.keys(restored).length) throw new Error('backup-এ কোনো পরিচিত পাঠের পরিবর্তন নেই।');
+    const serialized = JSON.stringify(restored);
+    if (serialized.length > 2_200_000) throw new Error('backup এই browser-এর storage সীমার চেয়ে বড়।');
+    localStorage.setItem(ARTICLE_EDITS_KEY, serialized);
+    articleEdits = restored;
+    articles.forEach((article) => {
+      restoreArticle(article.slug);
+      applyArticleEdit(article, articleEdits[article.slug]);
+    });
+    renderCards();
+    showToast('Backup-এর পরিবর্তন এই browser-এ ফিরিয়ে আনা হয়েছে।');
+  } catch (error) {
+    showToast(error.message || 'Backup import করা যায়নি।');
+  } finally {
+    importEditsFile.value = '';
+  }
+});
+document.getElementById('reset-edits').addEventListener('click', () => {
+  if (!Object.keys(articleEdits).length) {
+    showToast('এখনো কোনো পরিবর্তন সেভ করা হয়নি।');
+    return;
+  }
+  if (!window.confirm('এই browser-এ সেভ করা সব লেখা ও ছবির পরিবর্তন মুছে মূল অবস্থায় ফিরবেন?')) return;
+  try {
+    localStorage.removeItem(ARTICLE_EDITS_KEY);
+  } catch (error) {
+    showToast('Browser storage থেকে পরিবর্তন মুছতে পারিনি।');
+    return;
+  }
+  articleEdits = {};
+  articles.forEach((article) => restoreArticle(article.slug));
+  renderCards();
+  showToast('সব পাঠ মূল অবস্থায় ফিরেছে।');
+});
+
+editorForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  saveArticleEdits();
+});
+document.getElementById('close-article-editor').addEventListener('click', () => editorDialog.close());
+document.getElementById('cancel-article-editor').addEventListener('click', () => editorDialog.close());
+document.getElementById('reset-current-edit').addEventListener('click', () => {
+  if (!editingSlug || !window.confirm('এই পাঠের পরিবর্তন মুছে মূল লেখা ও ছবি ফেরাবেন?')) return;
+  const nextEdits = { ...articleEdits };
+  delete nextEdits[editingSlug];
+  try {
+    if (Object.keys(nextEdits).length) localStorage.setItem(ARTICLE_EDITS_KEY, JSON.stringify(nextEdits));
+    else localStorage.removeItem(ARTICLE_EDITS_KEY);
+  } catch (error) {
+    showToast('পরিবর্তন মুছে ফেলা যায়নি।');
+    return;
+  }
+  articleEdits = nextEdits;
+  restoreArticle(editingSlug);
+  editorDialog.close();
+  renderCards();
+  showToast('এই পাঠের মূল লেখা ও ছবি ফেরানো হয়েছে।');
+});
+editorDialog.addEventListener('close', () => {
+  editingSlug = null;
+  pendingEditorImage = null;
+});
+editorDialog.addEventListener('click', (event) => {
+  if (event.target === editorDialog) editorDialog.close();
 });
 
 document.getElementById('back-to-library').addEventListener('click', () => {
@@ -728,5 +1064,6 @@ document.addEventListener('keydown', (event) => {
 
 window.addEventListener('hashchange', renderRoute);
 window.addEventListener('popstate', renderRoute);
+syncEditorMode();
 renderCards();
 renderRoute();

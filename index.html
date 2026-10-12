@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=20261012-card-click1">
-  <script defer src="/app.js?v=20261012-card-click1"></script>
+  <link rel="stylesheet" href="/styles.css?v=20261012-local-edit2">
+  <script defer src="/app.js?v=20261012-local-edit2"></script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">মূল কনটেন্টে যান</a>
@@ -85,6 +85,14 @@
             <div><p class="eyebrow">02 / THE FIELD LIBRARY</p><h2 id="library-title">পাঠাগার থেকে বেছে নিন।</h2></div>
             <p class="library-result" id="result-count" aria-live="polite"></p>
           </div>
+          <div class="editor-toolbar">
+            <div class="editor-intro"><strong>নিজের পাঠ সম্পাদনা</strong><span>এডিট করা লেখা ও ছবি এই browser-এ সেভ থাকবে।</span></div>
+            <button class="editor-mode-toggle" id="editor-mode-toggle" type="button" aria-pressed="false">এডিট চালু করুন</button>
+          </div>
+          <div class="editor-tools" id="editor-tools" hidden>
+            <p>পরিবর্তন শুধু এই browser-এ দেখা যাবে। backup রাখুন, অথবা পরে final লেখা GitHub-এ প্রকাশ করুন।</p>
+            <div><button class="editor-tool-button" id="download-edits" type="button">পরিবর্তনের backup নামান</button><button class="editor-tool-button" id="import-edits-button" type="button">backup ফেরত নিন</button><input id="import-edits-file" type="file" accept="application/json,.json" hidden><button class="editor-tool-button editor-reset-button" id="reset-edits" type="button">সব পরিবর্তন মুছুন</button></div>
+          </div>
           <div class="library-toolbar">
             <div class="filter-tabs" id="category-filters" role="group" aria-label="ক্যাটাগরি দিয়ে পাঠ বাছুন">
               <button class="filter-chip active" data-category="all" aria-pressed="true">সব বিষয় <span>১৩</span></button>
@@ -136,5 +144,12 @@
     </footer>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <dialog class="article-editor-dialog" id="article-editor-dialog" aria-labelledby="article-editor-title">
+    <form id="article-editor-form">
+      <header class="editor-dialog-header"><div><p class="eyebrow">LOCAL EDIT / THIS BROWSER</p><h2 id="article-editor-title">পাঠ সম্পাদনা</h2></div><button class="editor-close" id="close-article-editor" type="button" aria-label="বন্ধ করুন">×</button></header>
+      <div class="editor-dialog-fields" id="article-editor-fields"></div>
+      <footer class="editor-dialog-actions"><button class="editor-reset-button" id="reset-current-edit" type="button">এই পাঠের মূল লেখা ফেরান</button><span class="editor-action-spacer"></span><button class="editor-tool-button" id="cancel-article-editor" type="button">বাতিল</button><button class="editor-save-button" type="submit">সেভ করুন</button></footer>
+    </form>
+  </dialog>
 </body>
 </html>
