@@ -44,6 +44,9 @@
 .topic-card-title{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;margin:0;font-size:15px;line-height:1.45;letter-spacing:-.02em}
 .topic-card-detail{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:5;overflow:hidden;margin:0;color:#000000;font-size:13px;font-weight:500;line-height:1.65}
 .topic-card-action{margin-top:auto;align-self:flex-start;color:#000000;font-size:11px;font-weight:600;line-height:1.4;text-decoration:underline;text-underline-offset:3px}
+.topic-detail-toolbar{display:flex;justify-content:flex-end;margin:0 0 14px}
+.topic-detail-back{border:1px solid var(--line-dark);background:transparent;padding:7px 10px;color:#000000;font-size:12px;font-weight:600;cursor:pointer;transition:background .18s,border-color .18s}
+.topic-detail-back:hover,.topic-detail-back:focus-visible{background:var(--lime);border-color:var(--lime-deep);outline:2px solid transparent}
 @media(hover:hover){.topic-card:hover{transform:translateY(-5px);border-color:var(--line-dark);box-shadow:0 10px 22px rgba(20,30,25,.1)}}
 .topic-card:focus-visible{outline:3px solid var(--lime-deep);outline-offset:2px;transform:translateY(-3px)}
 @media(max-width:1100px){.topic-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}

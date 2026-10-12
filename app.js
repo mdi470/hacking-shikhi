@@ -673,12 +673,6 @@ function buildTopicsOverview(article) {
       createElement('p', 'topic-card-detail', detail),
       createElement('span', 'topic-card-action', 'বিস্তারিত দেখুন ↓'),
     );
-    card.addEventListener('click', () => {
-      const destination = document.getElementById(sectionId);
-      if (!destination) return;
-      destination.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      destination.focus({ preventScroll: true });
-    });
     grid.append(card);
   });
   map.append(grid);
@@ -726,11 +720,25 @@ function buildArticle(slug) {
   safetyText.append(createElement('p', '', 'এই পাঠের অনুশীলন কেবল নিজের সিস্টেম, লিখিতভাবে অনুমোদিত লক্ষ্য বা বিচ্ছিন্ন বৈধ ল্যাবে করুন। অপ্রত্যাশিত data বা scope-এর বাইরের asset দেখলে থামুন।'));
   safety.append(safetyText);
   articleContent.append(safety);
-  articleContent.append(buildTopicsOverview(article));
+  const topicsOverview = buildTopicsOverview(article);
+  articleContent.append(topicsOverview);
+  let activeTopicCard = null;
 
   const layout = createElement('div', 'article-layout');
+  layout.hidden = true;
   const body = createElement('div', 'article-body');
   const tocList = createElement('ol', 'toc-list');
+  let openTopic = null;
+  const detailToolbar = createElement('div', 'topic-detail-toolbar');
+  const backToTopics = createElement('button', 'topic-detail-back', '← বিষয়ের তালিকায় ফিরুন');
+  backToTopics.type = 'button';
+  detailToolbar.append(backToTopics);
+  body.append(detailToolbar);
+  backToTopics.addEventListener('click', () => {
+    layout.hidden = true;
+    topicsOverview.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    activeTopicCard?.focus({ preventScroll: true });
+  });
   article.sections.forEach((section, index) => {
     const sectionId = `part-${index + 1}`;
     const li = createElement('li');
@@ -738,7 +746,7 @@ function buildArticle(slug) {
     link.href = `#${sectionId}`;
     link.addEventListener('click', (event) => {
       event.preventDefault();
-      document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+      openTopic?.(sectionId);
     });
     li.append(link);
     tocList.append(li);
@@ -746,6 +754,7 @@ function buildArticle(slug) {
     const sectionNode = createElement('section', 'article-section');
     sectionNode.id = sectionId;
     sectionNode.tabIndex = -1;
+    sectionNode.hidden = true;
     sectionNode.append(createElement('h2', '', section.heading));
     (section.paragraphs || []).forEach((paragraph) => sectionNode.append(createElement('p', '', paragraph)));
     if (section.bullets) {
@@ -817,6 +826,7 @@ function buildArticle(slug) {
   body.append(endCard);
 
   const sidebar = createElement('aside', 'article-sidebar');
+  sidebar.hidden = true;
   const sticky = createElement('div', 'sidebar-sticky');
   sticky.append(createElement('h3', '', 'এই পাঠে / ON THIS PAGE'), tocList);
   const progress = createElement('div', 'progress-box');
@@ -844,7 +854,24 @@ function buildArticle(slug) {
     sticky.append(refBox);
   }
   sidebar.append(sticky);
+  tagList.hidden = true;
+  endCard.hidden = true;
   layout.append(body, sidebar);
+  openTopic = (sectionId, sourceCard = null) => {
+    const destination = body.querySelector(`#${sectionId}`);
+    if (!destination) return;
+    activeTopicCard = sourceCard || topicsOverview.querySelector(`.topic-card[aria-controls="${sectionId}"]`);
+    body.querySelectorAll('.article-section').forEach((section) => {
+      section.hidden = section !== destination;
+    });
+    layout.hidden = false;
+    sidebar.hidden = false;
+    destination.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    destination.focus({ preventScroll: true });
+  };
+  topicsOverview.querySelectorAll('.topic-card').forEach((card) => {
+    card.addEventListener('click', () => openTopic?.(card.getAttribute('aria-controls'), card));
+  });
   articleContent.append(layout);
   return true;
 }
