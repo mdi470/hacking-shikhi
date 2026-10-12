@@ -33,35 +33,24 @@
 .card-summary{line-clamp:2}
 @media(max-width:760px){.article-cover.cover-drawing{min-height:200px}.toc-list a{cursor:pointer}}
 
-/* Seven-stage workflow and the consistent three-part practical lesson map. */
-.workflow-map{margin:28px 0 8px;padding:23px 0 0;border-top:1px solid var(--line-dark)}
-.workflow-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin-bottom:15px}
-.workflow-heading .eyebrow{margin:0 0 4px;font-size:11px;font-weight:500;color:#000000;}
-.workflow-heading h2{font-size:21px;line-height:1.4;letter-spacing:-.035em;margin:0}
-.workflow-grid{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.35fr) minmax(0,1fr);gap:11px;align-items:stretch}
-.workflow-card{min-width:0;background:var(--paper-light);border:1px solid var(--line);padding:16px;display:flex;flex-direction:column;align-items:flex-start}
-.workflow-card h3{font-size:15px;line-height:1.5;letter-spacing:-.025em;margin:5px 0 12px}
-.workflow-number{font:500 11px var(--mono);letter-spacing:.06em;color:#547466;background:#e4ebd9;padding:4px 7px;color:#000000;}
-.workflow-label{font-size:12px;color:#557265;margin:4px 0 3px;font-weight:500;color:#000000;}
-.workflow-card>p{font-size:13px;line-height:1.85;color:#4f5d55;margin:0 0 11px;font-weight:500;color:#000000;}
-.workflow-card .workflow-why{color:#6a756d;margin-bottom:0}
-.workflow-intro{font-size:12px!important;margin:-5px 0 9px!important;font-weight:500;color:#000000;}
-.workflow-checks,.workflow-outcomes{display:flex;flex-direction:column;gap:7px;width:100%}
-.workflow-jump{width:100%;display:grid;grid-template-columns:1fr auto;gap:3px 8px;text-align:left;border:1px solid #e1e4dc;background:#f7f7f1;padding:9px 10px;cursor:pointer;transition:background .18s,border-color .18s}
-.workflow-jump:hover,.workflow-jump:focus-visible{background:#edf2df;border-color:#a9ba96;outline:2px solid transparent}
-.workflow-jump strong{font-size:12px;line-height:1.5;font-weight:800;color:#000000;}
-.workflow-jump small{font:500 10px var(--mono);color:#60756a;white-space:nowrap;align-self:center;color:#000000;}
-.workflow-command-preview{grid-column:1/-1;display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 10px var(--mono);color:#648172;background:#edf0e9;padding:5px 7px;color:#000000;}
-.workflow-outcome{padding:10px 0;border-bottom:1px solid #e2e4dc}
-.workflow-outcome:first-child{padding-top:1px}
-.workflow-outcome:last-child{border-bottom:0;padding-bottom:0}
-.workflow-outcome>strong{font-size:12px;line-height:1.65;display:block;font-weight:800;color:#000000;}
-.workflow-outcome>p{font-size:12px;line-height:1.75;color:var(--muted);margin:4px 0 6px;font-weight:500;color:#000000;}
-.workflow-next-link{display:inline-block;font-size:11px;line-height:1.6;color:#4e7563;text-decoration:underline;text-decoration-color:#9cac99;text-underline-offset:3px;font-weight:500;color:#000000;}
-.workflow-next-link:hover{color:var(--ink)}
-.route-step strong{overflow-wrap:anywhere}
-@media(max-width:1100px){.workflow-grid{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr)}.workflow-next-card{grid-column:1/-1}}
-@media(max-width:760px){.workflow-map{margin-top:20px;padding-top:18px}.workflow-heading h2{font-size:19px}.workflow-grid{grid-template-columns:1fr;gap:9px}.workflow-next-card{grid-column:auto}.workflow-card{padding:14px}.route-step strong{font-size:14px;font-weight:800;color:#000000;}}
+/* Topic cards replace the three-step practical route on every lesson. */
+.topics-overview{margin:28px 0 8px;padding:23px 0 0;border-top:1px solid var(--line-dark)}
+.topics-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin-bottom:15px}
+.topics-heading .eyebrow{margin:0 0 4px;font-size:11px;font-weight:500;color:#000000}
+.topics-heading h2{font-size:21px;line-height:1.4;letter-spacing:-.035em;margin:0}
+.topic-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.topic-card{appearance:none;width:100%;min-width:0;aspect-ratio:1/1;display:flex;flex-direction:column;align-items:stretch;gap:9px;padding:14px;border:1px solid var(--line);background:var(--paper-light);color:#000000;text-align:left;cursor:pointer;overflow:hidden;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.topic-card-number{align-self:flex-start;padding:4px 7px;background:#e4ebd9;color:#000000;font:500 11px var(--mono);letter-spacing:.04em}
+.topic-card-title{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;margin:0;font-size:15px;line-height:1.45;letter-spacing:-.02em}
+.topic-card-detail{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:5;overflow:hidden;margin:0;color:#000000;font-size:13px;font-weight:500;line-height:1.65}
+.topic-card-action{margin-top:auto;align-self:flex-start;color:#000000;font-size:11px;font-weight:600;line-height:1.4;text-decoration:underline;text-underline-offset:3px}
+@media(hover:hover){.topic-card:hover{transform:translateY(-5px);border-color:var(--line-dark);box-shadow:0 10px 22px rgba(20,30,25,.1)}}
+.topic-card:focus-visible{outline:3px solid var(--lime-deep);outline-offset:2px;transform:translateY(-3px)}
+@media(max-width:1100px){.topic-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.topics-overview{margin-top:20px;padding-top:18px}.topics-heading h2{font-size:19px}.topic-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}}
+@media(max-width:430px){.topic-card{gap:6px;padding:10px}.topic-card-title{font-size:14px}.topic-card-detail{-webkit-line-clamp:3;font-size:12px;line-height:1.55}.topic-card-action{font-size:10px}}
+@media(max-width:340px){.topic-grid{grid-template-columns:1fr}.topic-card{aspect-ratio:1/.82}}
+@media(prefers-reduced-motion:reduce){.topic-card{transition:none}.topic-card:hover,.topic-card:focus-visible{transform:none}}
 
 .reference-table-wrap{max-width:100%;overflow-x:auto;margin:18px 0 24px;border:1px solid var(--line);border-radius:10px;background:var(--paper-light)}
 .reference-table{width:100%;min-width:520px;border-collapse:collapse;font-size:13px;line-height:1.7;font-weight:500;color:#000000;}
@@ -138,9 +127,9 @@
 .editor-save-button:disabled{opacity:.55;cursor:wait}
 
 /* Small-text refresh: +2px, one font-weight step, true black on light surfaces. */
-.button-secondary,.editor-reset-button,.search-form input::placeholder,.card-category,.eyebrow span,.eyebrow i,.workflow-card .workflow-why{color:#000000}
+.button-secondary,.editor-reset-button,.search-form input::placeholder,.card-category,.eyebrow span,.eyebrow i{color:#000000}
 .ethics-copy .eyebrow,.ethics-copy .eyebrow span,.ethics-copy .eyebrow i{color:var(--lime)}
 
 /* Preserve black text on light and lime hover/active states. */
-.filter-chip:not(.active):hover,.active-filters button,.mark-done:hover,.back-link:hover,.toc-list a:hover,.workflow-next-link:hover,.complete-button.done,.editor-mode-toggle.active,.article-card .edit-article-button:hover{color:#000000}
+.filter-chip:not(.active):hover,.active-filters button,.mark-done:hover,.back-link:hover,.toc-list a:hover,.complete-button.done,.editor-mode-toggle.active,.article-card .edit-article-button:hover{color:#000000}
 .filter-chip span{color:#000000}.filter-chip.active span{color:var(--lime)}

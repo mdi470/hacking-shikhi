@@ -641,59 +641,46 @@ function syncEditorMode() {
   editorTools.hidden = !editMode;
 }
 
-function buildPracticalFlow(article) {
-  const guide = PRACTICAL_GUIDES[article.slug];
-  const map = createElement('section', 'workflow-map');
-  map.setAttribute('aria-labelledby', 'workflow-map-title');
-  const heading = createElement('div', 'workflow-heading');
-  heading.append(createElement('p', 'eyebrow', 'THE PRACTICAL ROUTE / 03 STEPS'), createElement('h2', '', 'এই ব্লগের তিন ধাপ'));
+function buildTopicsOverview(article) {
+  const map = createElement('section', 'topics-overview');
+  const heading = createElement('div', 'topics-heading');
+  const title = createElement('h2', '', 'যা যা শিখবো');
+  title.id = 'topics-overview-title';
+  map.setAttribute('aria-labelledby', title.id);
+  heading.append(createElement('p', 'eyebrow', 'এই পাঠের বিষয়'), title);
   map.append(heading);
 
-  const grid = createElement('div', 'workflow-grid');
-  const findCard = createElement('section', 'workflow-card workflow-find');
-  findCard.append(createElement('span', 'workflow-number', '০১ / দেখুন'), createElement('h3', '', 'কী খুঁজব, কেন খুঁজব?'));
-  findCard.append(createElement('strong', 'workflow-label', 'যা খুঁজবেন'), createElement('p', '', guide.focus));
-  findCard.append(createElement('strong', 'workflow-label', 'কেন'), createElement('p', 'workflow-why', guide.why));
-
-  const checkCard = createElement('section', 'workflow-card workflow-check');
-  checkCard.append(createElement('span', 'workflow-number', '০২ / পরীক্ষা করুন'), createElement('h3', '', 'কমান্ড বা কোথায় যাব?'));
-  checkCard.append(createElement('p', 'workflow-intro', 'নিচের প্রতিটি ধাপ খুললে সংশ্লিষ্ট কমান্ড, UI/পর্যবেক্ষণ, নমুনা ফল ও নিরাপদ নোটে সরাসরি যাবেন।'));
-  const checks = createElement('div', 'workflow-checks');
+  const grid = createElement('div', 'topic-grid');
+  const bengaliDigits = '০১২৩৪৫৬৭৮৯';
   article.sections.forEach((section, index) => {
     const sectionId = `part-${index + 1}`;
-    const kind = section.code ? 'কমান্ড ও নমুনা ফল' : section.bullets ? 'চেকলিস্ট / পরীক্ষা' : 'ব্যাখ্যা / পর্যবেক্ষণ';
-    const jump = createElement('button', 'workflow-jump');
-    jump.type = 'button';
-    jump.append(createElement('strong', '', section.heading), createElement('small', '', `${kind} ↓`));
-    if (section.code) jump.append(createElement('code', 'workflow-command-preview', section.code.split('\n')[0]));
-    jump.addEventListener('click', () => {
+    const paragraphs = Array.isArray(section.paragraphs) ? section.paragraphs : [];
+    const bullets = Array.isArray(section.bullets) ? section.bullets : [];
+    const detail = paragraphs.find((paragraph) => typeof paragraph === 'string' && paragraph.trim())
+      || bullets.find((bullet) => typeof bullet === 'string' && bullet.trim())
+      || section.note
+      || (section.code ? `উদাহরণ: ${section.code.split('\n')[0]}` : '')
+      || (section.output ? section.output.split('\n')[0] : '')
+      || (section.table ? section.table.headers.join(' · ') : '')
+      || 'এই বিষয়ে বিস্তারিত পড়ুন।';
+    const card = createElement('button', 'topic-card');
+    card.type = 'button';
+    card.setAttribute('aria-controls', sectionId);
+    const number = String(index + 1).padStart(2, '0').replace(/\d/g, (digit) => bengaliDigits[Number(digit)]);
+    card.append(
+      createElement('span', 'topic-card-number', number),
+      createElement('h3', 'topic-card-title', section.heading),
+      createElement('p', 'topic-card-detail', detail),
+      createElement('span', 'topic-card-action', 'বিস্তারিত দেখুন ↓'),
+    );
+    card.addEventListener('click', () => {
       const destination = document.getElementById(sectionId);
       if (!destination) return;
       destination.scrollIntoView({ behavior: 'smooth', block: 'start' });
       destination.focus({ preventScroll: true });
     });
-    checks.append(jump);
+    grid.append(card);
   });
-  checkCard.append(checks);
-
-  const nextCard = createElement('section', 'workflow-card workflow-next-card');
-  nextCard.append(createElement('span', 'workflow-number', '০৩ / ফল অনুযায়ী'), createElement('h3', '', 'এরপর কোথায় যাব?'));
-  const outcomes = createElement('div', 'workflow-outcomes');
-  guide.next.forEach((outcome) => {
-    const row = createElement('div', 'workflow-outcome');
-    row.append(createElement('strong', '', outcome.when), createElement('p', '', outcome.action));
-    if (outcome.slug) {
-      const nextArticle = articles.find((item) => item.slug === outcome.slug);
-      if (nextArticle) {
-        const link = createElement('a', 'workflow-next-link', `পরের পাঠ: ${nextArticle.title} ↗`);
-        link.href = `#/article/${nextArticle.slug}`;
-        row.append(link);
-      }
-    }
-    outcomes.append(row);
-  });
-  nextCard.append(outcomes);
-  grid.append(findCard, checkCard, nextCard);
   map.append(grid);
   return map;
 }
@@ -739,7 +726,7 @@ function buildArticle(slug) {
   safetyText.append(createElement('p', '', 'এই পাঠের অনুশীলন কেবল নিজের সিস্টেম, লিখিতভাবে অনুমোদিত লক্ষ্য বা বিচ্ছিন্ন বৈধ ল্যাবে করুন। অপ্রত্যাশিত data বা scope-এর বাইরের asset দেখলে থামুন।'));
   safety.append(safetyText);
   articleContent.append(safety);
-  articleContent.append(buildPracticalFlow(article));
+  articleContent.append(buildTopicsOverview(article));
 
   const layout = createElement('div', 'article-layout');
   const body = createElement('div', 'article-body');
