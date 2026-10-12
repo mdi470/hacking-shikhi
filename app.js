@@ -628,7 +628,7 @@ function downloadArticleEdits() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `cyberpath-edits-${new Date().toISOString().slice(0, 10)}.json`;
+  link.download = `hacking-shikhi-edits-${new Date().toISOString().slice(0, 10)}.json`;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   showToast('পরিবর্তনের backup ডাউনলোড হয়েছে।');
@@ -701,7 +701,7 @@ function buildPracticalFlow(article) {
 function buildArticle(slug) {
   const article = articles.find((item) => item.slug === slug);
   if (!article) return false;
-  document.title = `${article.title} — সাইবারপথ`;
+  document.title = `${article.title} — হ্যাকিং শিখি`;
   document.getElementById('article-serial').textContent = `FIELD NOTE / ${String(articles.indexOf(article) + 1).padStart(2, '0')}`;
   articleContent.replaceChildren();
 
@@ -871,7 +871,7 @@ function renderRoute() {
   } else {
     homeView.hidden = false;
     articleView.hidden = true;
-    document.title = 'সাইবারপথ — নিরাপদ হাতে-কলমে সাইবারশিক্ষা';
+    document.title = 'হ্যাকিং শিখি — নিরাপদ হাতে-কলমে সাইবারশিক্ষা';
   }
 }
 
