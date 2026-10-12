@@ -69,3 +69,11 @@
 .reference-table thead th{font-size:9px;letter-spacing:.04em;color:var(--muted);background:rgba(0,0,0,.025)}
 .reference-table tbody th{font-family:var(--mono);font-size:10px;font-weight:600;white-space:nowrap;color:var(--ink)}
 .reference-table tr:last-child th,.reference-table tr:last-child td{border-bottom:0}
+
+/* Make the whole lesson card openable while keeping the progress control independent. */
+.article-card{cursor:pointer}
+.article-card .card-title-link{color:inherit;text-decoration:none}
+.article-card .card-title-link::after{content:"";position:absolute;inset:0;z-index:1}
+.article-card .card-title-link:focus-visible::after{outline:3px solid var(--lime-deep);outline-offset:-4px}
+.article-card .card-footer{justify-content:flex-end}
+.article-card .mark-done{position:relative;z-index:2}

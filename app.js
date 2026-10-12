@@ -359,9 +359,9 @@ function renderCards() {
     return `<article class="article-card${isDone ? ' is-complete' : ''}" style="animation-delay:${Math.min(index * 35, 250)}ms">
       <div class="card-image">${visual}<span class="card-index">${String(index + 1).padStart(2, '0')}</span><span class="card-read-state" aria-label="${isDone ? 'পাঠ সম্পন্ন' : 'এখনো সম্পন্ন নয়'}">${isDone ? '✓' : '·'}</span></div>
       <div class="card-body"><div class="card-meta"><span class="card-category">${esc(stage?.short || article.category)}</span><span class="meta-separator"></span><span>${esc(article.level)}</span><span class="meta-separator"></span><span>${esc(article.time)}</span></div>
-        <h3 class="card-title">${esc(article.title)}</h3><p class="card-summary">${esc(article.summary)}</p>
+        <h3 class="card-title"><a class="card-title-link" href="#/article/${esc(article.slug)}">${esc(article.title)}</a></h3><p class="card-summary">${esc(article.summary)}</p>
         <div class="card-tags">${article.tags.slice(0, 3).map((tag) => `<span>${esc(tag)}</span>`).join('')}</div>
-        <div class="card-footer"><button class="read-link open-article" data-article="${esc(article.slug)}">পাঠ খুলুন <span>↗</span></button><button class="mark-done" data-toggle-done="${esc(article.slug)}">${isDone ? 'আবার পড়ুন' : 'পড়া হয়েছে ✓'}</button></div>
+        <div class="card-footer"><button class="mark-done" data-toggle-done="${esc(article.slug)}">${isDone ? 'আবার পড়ুন' : 'পড়া হয়েছে ✓'}</button></div>
       </div></article>`;
   }).join('');
 }
@@ -682,8 +682,6 @@ document.querySelector('.roadmap-track').addEventListener('click', (event) => {
 });
 
 articleGrid.addEventListener('click', (event) => {
-  const open = event.target.closest('.open-article');
-  if (open) window.location.hash = `/article/${open.dataset.article}`;
   const done = event.target.closest('[data-toggle-done]');
   if (done) setCompleted(done.dataset.toggleDone);
 });
