@@ -44,7 +44,7 @@ const articles = [
     ],
   },
   {
-    slug: 'nmap-local-scan', title: 'Nmap: স্ক্যানিং থেকে রিপোর্ট পর্যন্ত', category: 'Recon ও Scan', phase: 'scanning', level: 'মাঝারি', time: '৩০ মিনিট',
+    slug: 'nmap-local-scan', title: 'Nmap', category: 'Recon ও Scan', phase: 'scanning', level: 'মাঝারি', time: '৩০ মিনিট',
     summary: 'Target, host discovery, TCP/UDP scan, port state, service detection, NSE, timing ও রিপোর্ট—শুধু নিজের বা অনুমোদিত lab-এ।', tags: ['Nmap', 'Host discovery', 'Port scanning'],
     keywords: 'nmap এনম্যাপ target specification scope host discovery sL sn Pn port TCP UDP SYN ACK open closed filtered version detection sV OS -O NSE scripts timing T3 firewall IPv6 report output oN oX oA', image: '/assets/image-3.webp', imageAlt: 'লোকাল ওয়েব অ্যাপের নিরাপদ মূল্যায়নের ইলাস্ট্রেশন', imageLabel: 'NMAP / LOOPBACK ONLY',
     refs: ['nmap', 'nmap-port', 'nmap-nse'],
