@@ -11,7 +11,7 @@ const articles = [
   {
     slug: 'network-foundations', title: 'নেটওয়ার্কের ভিত্তি: নিজের ল্যাবকে বুঝুন', category: 'ভিত্তি', phase: 'reconnaissance', level: 'শুরু', time: '৮ মিনিট',
     summary: 'IP, port, DNS ও HTTP—স্ক্যান শুরুর আগে নিজের পরিবেশের মানচিত্র আঁকুন।', tags: ['Networking', 'HTTP', 'Lab setup'],
-    keywords: 'নেটওয়ার্ক বেসিক আইপি পোর্ট ডিএনএস নেটওয়ার্ক অ্যানালাইসিস', image: '/assets/image-1.webp', imageAlt: 'ল্যাব নেটওয়ার্কের বিমূর্ত মানচিত্র', imageLabel: 'FOUNDATION / LOCAL NETWORK',
+    keywords: 'নেটওয়ার্ক বেসিক আইপি পোর্ট ডিএনএস নেটওয়ার্ক অ্যানালাইসিস', image: '/assets/image-1.webp?v=20261013-uploaded-hero1', imageAlt: 'বাংলাদেশের ডিজিটাল নেটওয়ার্ক মানচিত্র', imageLabel: 'FOUNDATION / LOCAL NETWORK',
     refs: [],
     sections: [
       { heading: 'টার্গেট নয়, আগে পরিবেশ', paragraphs: ['নেটওয়ার্ক পরীক্ষা শুরু হয় নিজের মেশিনে কী চলছে তা বোঝা থেকে। IP ঠিকানা হলো নেটওয়ার্কে যন্ত্রের পরিচয়; port হলো সেই যন্ত্রের কোনো সার্ভিসে পৌঁছানোর দরজা। DNS নামকে IP-তে মিলিয়ে দেয়, আর HTTP হলো ওয়েব ব্রাউজার ও সার্ভারের কথোপকথনের নিয়ম।'], bullets: ['শুধু নিজের যন্ত্র বা আলাদা ভার্চুয়াল ল্যাব নির্বাচন করুন।', 'ল্যাবের ঠিকানা, খোলা সার্ভিস এবং পরীক্ষার সময় লিখে রাখুন।', 'Production বা অফিসের নেটওয়ার্ককে অনুমতি ছাড়া ল্যাব ধরে নেবেন না.'] },
