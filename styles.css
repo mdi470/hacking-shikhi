@@ -136,3 +136,6 @@
 /* Preserve black text on light and lime hover/active states. */
 .filter-chip:not(.active):hover,.active-filters button,.mark-done:hover,.back-link:hover,.toc-list a:hover,.complete-button.done,.editor-mode-toggle.active,.article-card .edit-article-button:hover{color:#000000}
 .filter-chip span{color:#000000}.filter-chip.active span{color:var(--lime)}
+
+/* Match the uploaded 16:9 hero image instead of cropping it in a tall frame. */
+.hero-art{aspect-ratio:16/9;min-height:0;align-self:center}
