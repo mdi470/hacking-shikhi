@@ -433,6 +433,7 @@ function refreshCardSummaryEllipses() {
   });
 }
 window.addEventListener('resize', () => requestAnimationFrame(refreshCardSummaryEllipses), { passive: true });
+if (document.fonts?.ready) document.fonts.ready.then(() => requestAnimationFrame(refreshCardSummaryEllipses));
 
 function showToast(message) {
   toast.textContent = message;
