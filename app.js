@@ -736,10 +736,12 @@ function buildArticle(slug) {
   let activeTopicCard = null;
 
   const layout = createElement('div', 'article-layout');
+  layout.classList.toggle('is-planning-scoping', article.slug === 'planning-scoping');
   layout.hidden = true;
   const body = createElement('div', 'article-body');
   const tocList = createElement('ol', 'toc-list');
   let openTopic = null;
+  let activeSectionIndex = -1;
   const detailToolbar = createElement('div', 'topic-detail-toolbar');
   const backToTopics = createElement('button', 'topic-detail-back', '← বিষয়ের তালিকায় ফিরুন');
   backToTopics.type = 'button';
@@ -747,6 +749,8 @@ function buildArticle(slug) {
   body.append(detailToolbar);
   backToTopics.addEventListener('click', () => {
     layout.hidden = true;
+    topicsOverview.hidden = false;
+    activeSectionIndex = -1;
     topicsOverview.scrollIntoView({ behavior: 'smooth', block: 'start' });
     activeTopicCard?.focus({ preventScroll: true });
   });
@@ -826,6 +830,24 @@ function buildArticle(slug) {
     body.append(sectionNode);
   });
 
+  const nextTopicRow = createElement('div', 'topic-next-row');
+  const nextTopicButton = createElement('button', 'topic-next-button');
+  nextTopicButton.type = 'button';
+  const nextTopicCopy = createElement('span', 'topic-next-copy');
+  const nextTopicTitle = createElement('strong', 'topic-next-title');
+  nextTopicCopy.append(createElement('span', 'topic-next-label', 'পরবর্তী বিষয়'), nextTopicTitle);
+  nextTopicButton.append(nextTopicCopy, createElement('span', 'topic-next-arrow', '→'));
+  nextTopicRow.append(nextTopicButton);
+  nextTopicRow.hidden = true;
+  body.append(nextTopicRow);
+  nextTopicButton.addEventListener('click', () => {
+    const nextIndex = activeSectionIndex + 1;
+    if (nextIndex < 0 || nextIndex >= article.sections.length) return;
+    const nextSectionId = `part-${nextIndex + 1}`;
+    const nextCard = topicsOverview.querySelector(`.topic-card[aria-controls="${nextSectionId}"]`);
+    openTopic?.(nextSectionId, nextCard);
+  });
+
   const tagList = createElement('div', 'article-tags');
   article.tags.forEach((tag) => tagList.append(createElement('span', '', tag)));
   body.append(tagList);
@@ -872,9 +894,17 @@ function buildArticle(slug) {
     const destination = body.querySelector(`#${sectionId}`);
     if (!destination) return;
     activeTopicCard = sourceCard || topicsOverview.querySelector(`.topic-card[aria-controls="${sectionId}"]`);
+    activeSectionIndex = article.sections.findIndex((section, index) => `part-${index + 1}` === sectionId);
+    topicsOverview.hidden = true;
     body.querySelectorAll('.article-section').forEach((section) => {
       section.hidden = section !== destination;
     });
+    const nextSection = article.sections[activeSectionIndex + 1];
+    nextTopicRow.hidden = !nextSection;
+    if (nextSection) {
+      nextTopicTitle.textContent = nextSection.heading;
+      nextTopicButton.setAttribute('aria-label', `পরবর্তী বিষয়: ${nextSection.heading}`);
+    }
     layout.hidden = false;
     sidebar.hidden = false;
     destination.scrollIntoView({ behavior: 'smooth', block: 'start' });
