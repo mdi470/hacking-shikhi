@@ -959,6 +959,7 @@ function renderRoute() {
     articleView.hidden = true;
     document.title = 'হ্যাকিং শিখি — নিরাপদ হাতে-কলমে সাইবারশিক্ষা';
   }
+  if (!homeView.hidden) requestAnimationFrame(refreshCardSummaryEllipses);
 }
 
 function clearFilters() {
