@@ -423,7 +423,16 @@ function renderCards() {
         <div class="card-footer">${editMode ? `<button class="edit-article-button" type="button" data-edit-article="${esc(article.slug)}">সম্পাদনা</button>` : ''}<button class="mark-done" data-toggle-done="${esc(article.slug)}">${isDone ? 'আবার পড়ুন' : 'পড়া হয়েছে ✓'}</button></div>
       </div></article>`;
   }).join('');
+  requestAnimationFrame(refreshCardSummaryEllipses);
 }
+
+function refreshCardSummaryEllipses() {
+  articleGrid.querySelectorAll('.card-summary').forEach((summary) => {
+    summary.classList.remove('is-truncated');
+    if (summary.scrollHeight > summary.clientHeight + 1) summary.classList.add('is-truncated');
+  });
+}
+window.addEventListener('resize', () => requestAnimationFrame(refreshCardSummaryEllipses), { passive: true });
 
 function showToast(message) {
   toast.textContent = message;
@@ -831,13 +840,20 @@ function buildArticle(slug) {
   });
 
   const nextTopicRow = createElement('div', 'topic-next-row');
+  const previousTopicButton = createElement('button', 'topic-previous-button');
+  previousTopicButton.type = 'button';
+  const previousTopicCopy = createElement('span', 'topic-previous-copy');
+  const previousTopicTitle = createElement('strong', 'topic-previous-title');
+  previousTopicCopy.append(createElement('span', 'topic-previous-label', 'পূর্বের বিষয়'), previousTopicTitle);
+  previousTopicButton.append(createElement('span', 'topic-previous-arrow', '←'), previousTopicCopy);
+  previousTopicButton.hidden = true;
   const nextTopicButton = createElement('button', 'topic-next-button');
   nextTopicButton.type = 'button';
   const nextTopicCopy = createElement('span', 'topic-next-copy');
   const nextTopicTitle = createElement('strong', 'topic-next-title');
   nextTopicCopy.append(createElement('span', 'topic-next-label', 'পরবর্তী বিষয়'), nextTopicTitle);
   nextTopicButton.append(nextTopicCopy, createElement('span', 'topic-next-arrow', '→'));
-  nextTopicRow.append(nextTopicButton);
+  nextTopicRow.append(previousTopicButton, nextTopicButton);
   nextTopicRow.hidden = true;
   body.append(nextTopicRow);
   nextTopicButton.addEventListener('click', () => {
@@ -846,6 +862,13 @@ function buildArticle(slug) {
     const nextSectionId = `part-${nextIndex + 1}`;
     const nextCard = topicsOverview.querySelector(`.topic-card[aria-controls="${nextSectionId}"]`);
     openTopic?.(nextSectionId, nextCard);
+  });
+  previousTopicButton.addEventListener('click', () => {
+    const previousIndex = activeSectionIndex - 1;
+    if (previousIndex < 0) return;
+    const previousSectionId = `part-${previousIndex + 1}`;
+    const previousCard = topicsOverview.querySelector(`.topic-card[aria-controls="${previousSectionId}"]`);
+    openTopic?.(previousSectionId, previousCard);
   });
 
   const tagList = createElement('div', 'article-tags');
@@ -899,8 +922,15 @@ function buildArticle(slug) {
     body.querySelectorAll('.article-section').forEach((section) => {
       section.hidden = section !== destination;
     });
+    const previousSection = article.sections[activeSectionIndex - 1];
     const nextSection = article.sections[activeSectionIndex + 1];
-    nextTopicRow.hidden = !nextSection;
+    previousTopicButton.hidden = !previousSection;
+    nextTopicButton.hidden = !nextSection;
+    nextTopicRow.hidden = !previousSection && !nextSection;
+    if (previousSection) {
+      previousTopicTitle.textContent = previousSection.heading;
+      previousTopicButton.setAttribute('aria-label', `পূর্বের বিষয়: ${previousSection.heading}`);
+    }
     if (nextSection) {
       nextTopicTitle.textContent = nextSection.heading;
       nextTopicButton.setAttribute('aria-label', `পরবর্তী বিষয়: ${nextSection.heading}`);
