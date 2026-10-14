@@ -156,6 +156,7 @@
 .article-layout.is-planning-scoping .article-section h2{margin-top:0}
 .article-layout.is-planning-scoping .article-section p,.article-layout.is-planning-scoping .article-section li{font-size:17px;font-weight:600;line-height:1.9;color:#000000}
 .topic-next-row{justify-content:space-between;align-items:stretch;gap:12px}
+.topic-next-button:not([hidden]){margin-left:auto}
 .topic-next-button,.topic-previous-button{width:min(100%,230px);min-width:0;min-height:56px;gap:10px;padding:8px 10px}
 .topic-next-button{flex-direction:row}
 .topic-next-copy,.topic-previous-copy{gap:2px}
