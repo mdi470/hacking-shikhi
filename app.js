@@ -261,8 +261,38 @@ function renderCards() {
 
 function refreshCardSummaryEllipses() {
   articleGrid.querySelectorAll('.card-summary').forEach((summary) => {
+    const fullText = summary.dataset.fullText ?? summary.textContent;
+    summary.dataset.fullText = fullText;
     summary.classList.remove('is-truncated');
-    if (summary.scrollHeight > summary.clientHeight + 1) summary.classList.add('is-truncated');
+    summary.removeAttribute('aria-label');
+    summary.textContent = fullText;
+    const maxHeight = Number.parseFloat(getComputedStyle(summary).maxHeight);
+    if (!Number.isFinite(maxHeight) || summary.scrollHeight <= maxHeight + 1) return;
+
+    let low = 0;
+    let high = fullText.length;
+    let bestPrefix = '';
+    while (low <= high) {
+      const middle = Math.floor((low + high) / 2);
+      let prefix = fullText.slice(0, middle).trimEnd();
+      if (middle < fullText.length && middle > 0 && !/\s/.test(fullText[middle - 1])) {
+        const lastWordStart = prefix.search(/\s+\S*$/);
+        if (lastWordStart >= 0) prefix = prefix.slice(0, lastWordStart).trimEnd();
+      }
+      if (!prefix) { low = middle + 1; continue; }
+      summary.textContent = `${prefix}...`;
+      if (summary.scrollHeight <= maxHeight + 1) {
+        bestPrefix = prefix;
+        low = middle + 1;
+      } else {
+        high = middle - 1;
+      }
+    }
+    if (bestPrefix) {
+      summary.textContent = `${bestPrefix}...`;
+      summary.classList.add('is-truncated');
+      summary.setAttribute('aria-label', fullText);
+    }
   });
 }
 window.addEventListener('resize', () => requestAnimationFrame(refreshCardSummaryEllipses), { passive: true });

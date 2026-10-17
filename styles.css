@@ -149,9 +149,8 @@
 /* Match the uploaded 16:9 hero image instead of cropping it in a tall frame. */
 .hero-art{aspect-ratio:16/9;min-height:0;align-self:center}
 
-/* Planning & Scoping reading sheet: US Letter proportions and readable Bengali type. */
-.card-summary{position:relative;min-height:0;max-height:calc(1.8em * 2.5);overflow:hidden}
-.card-summary.is-truncated::after{content:"...";position:absolute;right:0;bottom:0;padding-left:.45em;background:linear-gradient(90deg,rgba(251,250,245,0),var(--paper-light) 40%);font-weight:700}
+/* Keep three complete summary lines; JavaScript adds ... at the last word boundary. */
+.card-summary{position:relative;min-height:0;max-height:calc(1.8em * 3);overflow:hidden}
 .article-layout.is-planning-scoping .article-section{width:min(100%,8.5in);min-height:11in;margin:0 auto;padding:.68in;background:#f3ead3;border:1px solid var(--line);box-shadow:0 12px 34px rgba(22,36,30,.09)}
 .article-layout.is-planning-scoping .article-section h2{margin-top:0}
 .article-layout.is-planning-scoping .article-section p,.article-layout.is-planning-scoping .article-section li{font-size:16px;font-weight:600;line-height:1.9;color:#000000}
