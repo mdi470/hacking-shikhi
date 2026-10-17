@@ -567,7 +567,7 @@ function buildArticle(slug) {
   const article = articles.find((item) => item.slug === slug);
   if (!article) return false;
   document.title = `${article.title} — হ্যাকিং শিখি`;
-  document.getElementById('article-serial').textContent = `FIELD NOTE / ${String(articles.indexOf(article) + 1).padStart(2, '0')}`;
+  document.getElementById('article-serial').textContent = `LAB MODULE / ${String(articles.indexOf(article) + 1).padStart(2, '0')}`;
   articleContent.replaceChildren();
 
   const hero = createElement('header', 'article-hero');
