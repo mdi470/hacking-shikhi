@@ -151,6 +151,8 @@
 
 /* Keep three complete summary lines; JavaScript adds ... at the last word boundary. */
 .card-summary{position:relative;min-height:0;max-height:calc(1.8em * 3);overflow:hidden}
+.article-grid:has(>.article-card:only-child)>.article-card{grid-column:span 2;max-width:560px}
+@media(max-width:760px){.article-grid:has(>.article-card:only-child)>.article-card{grid-column:1;max-width:100%}}
 .article-layout.is-planning-scoping .article-section{width:min(100%,8.5in);min-height:11in;margin:0 auto;padding:.68in;background:#f3ead3;border:1px solid var(--line);box-shadow:0 12px 34px rgba(22,36,30,.09)}
 .article-layout.is-planning-scoping .article-section h2{margin-top:0}
 .article-layout.is-planning-scoping .article-section p,.article-layout.is-planning-scoping .article-section li{font-size:16px;font-weight:600;line-height:1.9;color:#000000}
