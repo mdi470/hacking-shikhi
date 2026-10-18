@@ -663,3 +663,12 @@ textarea:focus-visible { outline: 2px solid #a8f36c; outline-offset: 3px; }
 .text-link { color: #b4c8d1; border-bottom-color: #365565; }
 .text-link:hover,
 .text-link:focus-visible { color: #a8f36c; border-bottom-color: #a8f36c; }
+
+
+/* Sharper reading: medium-weight text by default, preserving bold heading hierarchy. */
+body {
+  font-weight: 500;
+  -webkit-font-smoothing: auto;
+  text-rendering: optimizeLegibility;
+}
+.art-coordinate b { font-weight: 500; }
